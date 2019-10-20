@@ -1,2 +1,43 @@
  
 mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.15 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+
+    
+ <repositories>
+    <repository>
+        <id>repository</id>
+        <url>https://github.com/iboxdb/teadb/raw/repository</url>
+    </repository>
+</repositories>
+
+<dependencies>
+<dependency>
+	<groupId>iBoxDB</groupId>
+	<artifactId>iBoxDB</artifactId>
+	<version>2.15</version>
+</dependency>    
+</dependencies>
+    
+
+Getting started
+
+There are several options for using TeaVM. One is a Maven build. 
+The easiest way to create a new TeaVM project is to type in this command:
+
+mvn -DarchetypeCatalog=local \
+  -DarchetypeGroupId=org.teavm \
+  -DarchetypeArtifactId=teavm-maven-webapp \
+  -DarchetypeVersion=0.6.1 archetype:generate
+
+Now you can execute 'mvn clean package' and get the generated war file. 
+Deploy this war in Tomcat or another container, or simply unzip it and open the index.html page.
+
+Using the Flavour framework
+
+mvn archetype:generate \
+  -DarchetypeGroupId=org.teavm.flavour \
+  -DarchetypeArtifactId=teavm-flavour-application \
+  -DarchetypeVersion=0.2.1
+
+This should generate a new minimal Flavour application.
+You can build the generated project as usual by 'mvn package'.
+After successful build you should be able to open target/hello-1.0-SNAPSHOT/index.html in your browser.
