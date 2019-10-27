@@ -1,8 +1,5 @@
 # TeaDB
 
-```
-mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.15 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
-```
   
 ```xml
 <repositories>
@@ -21,4 +18,14 @@ mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBox
 </dependencies>
 ```
 
+Run
+```
+mvn exec:java
+```
+
+Install
+
+```
+mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.15 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+```
 
