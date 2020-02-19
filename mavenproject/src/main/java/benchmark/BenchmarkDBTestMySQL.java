@@ -63,10 +63,11 @@ public class BenchmarkDBTestMySQL {
                 TestMySQL();
             } catch (Throwable ex) {
                 System.out.println("No MySQL Server at " + mysqlstr);
-                System.exit(0);
+
             }
             System.out.println();
             System.out.println("Test End.");
+            System.exit(0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -222,6 +223,34 @@ public class BenchmarkDBTestMySQL {
                 pool.execute(new Runnable() {
                     @Override
                     public void run() {
+
+                        {
+                            AutoBox auto = db.get();
+                            int minId = p * batchCount + 0;
+                            int maxId = p * batchCount + batchCount;
+                            var reader = auto
+                                    .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
+                                            minId, maxId).iterator();
+                            int ti = minId;
+                            while (reader.hasNext()) {
+                                T1 t1 = reader.next();
+                                var iv = t1.getId();
+                                if (ti != iv) {
+                                    System.out.println("e");
+                                    throw new RuntimeException(ti + "  " + iv);
+                                }
+                                if (!("U" + ti).equals(t1.getValue())) {
+                                    System.out.println("eu");
+                                    throw new RuntimeException(ti + "  " + t1.getValue());
+                                }
+                                ti++;
+                            }
+                            if (ti != maxId) {
+                                System.out.println("e");
+                                throw new RuntimeException();
+                            }
+                        }
+
                         try (Box box = db.cube()) {
                             for (int i = 0; i < batchCount; i++) {
                                 int id = (p * batchCount) + i;
@@ -489,6 +518,45 @@ public class BenchmarkDBTestMySQL {
                 pool.execute(new Runnable() {
                     @Override
                     public void run() {
+
+                        try {
+                            var conn = connPool.take();
+                            conn.setAutoCommit(true);
+                            var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
+                            int minId = p * batchCount + 0;
+                            int maxId = p * batchCount + batchCount;
+                            stmt.setInt(1, minId);
+                            stmt.setInt(2, maxId);
+
+                            var reader = T1.toArray(stmt.executeQuery()).iterator();
+                            stmt.close();
+
+                            connPool.put(conn);
+
+                            int ti = minId;
+                            while (reader.hasNext()) {
+                                var t1 = reader.next();
+                                var iv = t1.getId();
+                                if (ti != iv) {
+                                    System.out.println("e");
+                                    throw new RuntimeException(ti + "  " + iv);
+                                }
+                                if (!("U" + ti).equals(t1.getValue())) {
+                                    System.out.println("eu");
+                                    throw new RuntimeException(ti + "  " + t1.getValue());
+                                }
+                                ti++;
+
+                            }
+                            if (ti != maxId) {
+                                System.out.println("e2");
+                                throw new RuntimeException(ti + "  " + maxId);
+                            }
+
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+
                         try {
                             var conn = connPool.take();
                             conn.setAutoCommit(false);
