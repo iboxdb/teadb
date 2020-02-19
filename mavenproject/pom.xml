@@ -7,8 +7,8 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>11</maven.compiler.source>
+        <maven.compiler.target>11</maven.compiler.target>
     </properties>
     
     <repositories>
@@ -24,8 +24,16 @@
             <artifactId>iBoxDB</artifactId>
             <version>2.15</version>
         </dependency>
-    </dependencies>
+
     
+       <dependency>
+          <groupId>mysql</groupId>
+          <artifactId>mysql-connector-java</artifactId>
+          <version>8.0.19</version>
+       </dependency>
+    </dependencies>
+
+
     <build>
         <plugins>
             <plugin>
@@ -40,11 +48,7 @@
                     </execution>
                 </executions>
                 <configuration>
-                    <mainClass>mvndemo.Demo</mainClass>
-                    <arguments>
-                        <argument>foo</argument>
-                        <argument>bar</argument>
-                    </arguments>
+                    <mainClass>benchmark.BenchmarkDBTestMySQL</mainClass>
                 </configuration>
             </plugin>
         </plugins>
