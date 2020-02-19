@@ -1,9 +1,11 @@
-### Maven Deploy & Benchmark with MySQL example
+### Maven Deploy & Benchmark with MySQL
 
 
 
 #### Run
 ```
+//close all IDE first
+//Java 11 Version
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 
 mvn clean
