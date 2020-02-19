@@ -1,4 +1,15 @@
-# TeaDB
+### Maven Deploy & Benchmark with MySQL example
+
+
+
+#### Run
+```
+export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
+
+mvn clean
+mvn install
+mvn exec:java
+```
 
   
 ```xml
@@ -18,12 +29,8 @@
 </dependencies>
 ```
 
-Run
-```
-mvn exec:java
-```
 
-Install
+#### Install
 
 ```
 mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.15 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
