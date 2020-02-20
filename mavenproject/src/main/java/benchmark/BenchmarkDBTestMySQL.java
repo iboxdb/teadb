@@ -43,9 +43,9 @@ public class BenchmarkDBTestMySQL {
                     threadCount, batchCount, reinterationSelect);
 
             //never set root = "" or "./" when inside IDE
-            //the IDE would block writing.
+            //the IDE would block writing by reading the Files to memory.
             String root = "../"; //"/tmp"
-            iBoxDB.LocalServer.DB.root(root);
+            DB.root(root);
 
             System.out.println();
             System.out.println("iBoxDB");
@@ -77,7 +77,7 @@ public class BenchmarkDBTestMySQL {
     public static void TestiBoxDB() {
         BoxSystem.DBDebug.DeleteDBFiles(1);
 
-        try (iBoxDBServer server = new iBoxDBServer()) {
+        try (var server = new AppServer()) {
             final Database db = server.getInstance();
             System.out.print("Database Transaction Test: ");
             Box box1 = db.cube();
@@ -693,7 +693,7 @@ public class BenchmarkDBTestMySQL {
         }
     }
 
-    public static class iBoxDBServer extends LocalDatabaseServer {
+    public static class AppServer extends LocalDatabaseServer {
 
         @Override
         protected DatabaseConfig BuildDatabaseConfig(long address) {
