@@ -12,6 +12,8 @@ import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static benchmark.BenchmarkDBTestMySQL.Methods.*;
+
 /*
 iBoxDB.java v2.15.0
  */
@@ -21,13 +23,17 @@ MySQL, mysql-8.0.19-linux-x86_64-minimal , mysql-connector-java-8.0.19.jar
 sudo mv /etc/my.cnf /etc/my.cnf.bak
 rm -rf /tmp/mysqldata
 
-./mysqld --initialize --datadir=/tmp/mysqldata 
-./mysqld --datadir=/tmp/mysqldata
+./mysqld --initialize --datadir=/tmp/mysqldata --skip-log-bin 
+./mysqld --datadir=/tmp/mysqldata --skip-log-bin 
 
 ./mysql -u root -p
 
 ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
 create database test;
+
+exit;
+./mysql -u root --password="123456"
+
  */
 public class BenchmarkDBTestMySQL {
 
@@ -38,7 +44,7 @@ public class BenchmarkDBTestMySQL {
     public static void main(String[] args) {
         try {
 
-            System.out.println("Benchmark Version 1.1 " + System.getProperty("java.version"));
+            System.out.println("Benchmark Version 1.2, " + System.getProperty("java.version"));
             System.out.format("threadCount= %,d batchCount= %,d reinterationSelect= %,d %n",
                     threadCount, batchCount, reinterationSelect);
 
@@ -87,10 +93,8 @@ public class BenchmarkDBTestMySQL {
             Box box2 = db.cube();
             box2.d("T1").insert(new T1(-2, Integer.toString(-2)));
 
-            List<T1> transaction1 = T1
-                    .toArray(box1.select(T1.class, "from T1"));
-            List<T1> transaction2 = T1
-                    .toArray(box2.select(T1.class, "from T1"));
+            List<T1> transaction1 = toList(box1.select(T1.class, "from T1"));
+            List<T1> transaction2 = toList(box2.select(T1.class, "from T1"));
             if (transaction1.size() == 1
                     && transaction1.get(0).getId() == -1
                     && transaction2.size() == 1
@@ -107,39 +111,34 @@ public class BenchmarkDBTestMySQL {
             ExecutorService pool = CreatePool();
             for (int i = 0; i < threadCount; i++) {
                 final int p = i;
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        try (Box box = db.cube()) {
-                            for (int i = 0; i < batchCount; i++) {
-                                int id = (p * batchCount) + i;
-                                box.d("T1").insert(new T1(id, Integer.toString(id)));
-                                count.incrementAndGet();
-                            }
-                            var cr = box.commit();
+                pool.execute(() -> {
+                    try (final Box box = db.cube()) {
+                        for (int i1 = 0; i1 < batchCount; i1++) {
+                            int id = (p * batchCount) + i1;
+                            box.d("T1").insert(new T1(id, Integer.toString(id)));
+                            count.incrementAndGet();
                         }
-
-                        for (int r = 0; r < reinterationSelect; r++) {
-                            AutoBox auto = db.get();
-                            int minId = p * batchCount + 0;
-                            int maxId = p * batchCount + batchCount;
-                            var reader = auto
-                                    .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
-                                            minId, maxId).iterator();
-                            int ti = minId;
-                            while (reader.hasNext()) {
-                                var iv = reader.next().getId();
-                                if (ti != iv) {
-                                    System.out.println("e");
-                                    throw new RuntimeException(ti + "  " + iv);
-                                }
-                                ti++;
-                            }
-                            if (ti != maxId) {
+                        var cr = box.commit();
+                    }
+                    for (int r = 0; r < reinterationSelect; r++) {
+                        AutoBox auto = db.get();
+                        int minId = p * batchCount + 0;
+                        int maxId = p * batchCount + batchCount;
+                        var reader = auto
+                                .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
+                                        minId, maxId).iterator();
+                        int ti = minId;
+                        while (reader.hasNext()) {
+                            var iv = reader.next().getId();
+                            if (ti != iv) {
                                 System.out.println("e");
-                                throw new RuntimeException();
+                                throw new RuntimeException(ti + "  " + iv);
                             }
+                            ti++;
+                        }
+                        if (ti != maxId) {
+                            System.out.println("e");
+                            throw new RuntimeException();
                         }
                     }
                 });
@@ -160,48 +159,42 @@ public class BenchmarkDBTestMySQL {
             pool = CreatePool();
             for (int i = 0; i < threadCount; i++) {
                 final int p = i;
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-                        try (Box box = db.cube()) {
-                            for (int i = 0; i < batchCount; i++) {
-                                int id = (p * batchCount) + i;
-                                Binder bd = box.d("T1", id);
-                                var hm = bd.select(T1.class);
-                                hm.setValue("U" + hm.getValue());
-                                bd.update(hm);
-                                count.incrementAndGet();
-                            }
-                            var cr = box.commit();
+                pool.execute(() -> {
+                    try (final Box box = db.cube()) {
+                        for (int i1 = 0; i1 < batchCount; i1++) {
+                            int id = (p * batchCount) + i1;
+                            var t1 = box.d("T1", id).select(T1.class);
+                            t1.setValue("U" + t1.getValue());
+                            box.d("T1").update(t1);
+                            count.incrementAndGet();
                         }
-
-                        for (int r = 0; r < reinterationSelect; r++) {
-                            AutoBox auto = db.get();
-                            int minId = p * batchCount + 0;
-                            int maxId = p * batchCount + batchCount;
-                            var reader = auto
-                                    .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
-                                            minId, maxId).iterator();
-                            int ti = minId;
-                            while (reader.hasNext()) {
-                                T1 t1 = reader.next();
-                                var iv = t1.getId();
-                                if (ti != iv) {
-                                    System.out.println("e");
-                                    throw new RuntimeException(ti + "  " + iv);
-                                }
-                                if (!("U" + ti).equals(t1.getValue())) {
-                                    System.out.println("eu");
-                                    throw new RuntimeException(ti + "  " + t1.getValue());
-                                }
-                                ti++;
-                            }
-                            if (ti != maxId) {
+                        var cr = box.commit();
+                    }
+                    for (int r = 0; r < reinterationSelect; r++) {
+                        AutoBox auto = db.get();
+                        int minId = p * batchCount + 0;
+                        int maxId = p * batchCount + batchCount;
+                        var reader = auto
+                                .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
+                                        minId, maxId).iterator();
+                        int ti = minId;
+                        while (reader.hasNext()) {
+                            T1 t1 = reader.next();
+                            var iv = t1.getId();
+                            if (ti != iv) {
                                 System.out.println("e");
-                                throw new RuntimeException();
+                                throw new RuntimeException(ti + "  " + iv);
                             }
+                            if (!("U" + ti).equals(t1.getValue())) {
+                                System.out.println("eu");
+                                throw new RuntimeException(ti + "  " + t1.getValue());
+                            }
+                            ti++;
                         }
-
+                        if (ti != maxId) {
+                            System.out.println("e");
+                            throw new RuntimeException();
+                        }
                     }
                 });
             }
@@ -221,45 +214,40 @@ public class BenchmarkDBTestMySQL {
             pool = CreatePool();
             for (int i = 0; i < threadCount; i++) {
                 final int p = i;
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        for (int r = 0; r < reinterationSelect; r++) {
-                            AutoBox auto = db.get();
-                            int minId = p * batchCount + 0;
-                            int maxId = p * batchCount + batchCount;
-                            var reader = auto
-                                    .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
-                                            minId, maxId).iterator();
-                            int ti = minId;
-                            while (reader.hasNext()) {
-                                T1 t1 = reader.next();
-                                var iv = t1.getId();
-                                if (ti != iv) {
-                                    System.out.println("e");
-                                    throw new RuntimeException(ti + "  " + iv);
-                                }
-                                if (!("U" + ti).equals(t1.getValue())) {
-                                    System.out.println("eu");
-                                    throw new RuntimeException(ti + "  " + t1.getValue());
-                                }
-                                ti++;
-                            }
-                            if (ti != maxId) {
+                pool.execute(() -> {
+                    for (int r = 0; r < reinterationSelect; r++) {
+                        AutoBox auto = db.get();
+                        int minId = p * batchCount + 0;
+                        int maxId = p * batchCount + batchCount;
+                        var reader = auto
+                                .select(T1.class, "from T1 where Id>=? & Id<? order by Id",
+                                        minId, maxId).iterator();
+                        int ti = minId;
+                        while (reader.hasNext()) {
+                            T1 t1 = reader.next();
+                            var iv = t1.getId();
+                            if (ti != iv) {
                                 System.out.println("e");
-                                throw new RuntimeException();
+                                throw new RuntimeException(ti + "  " + iv);
                             }
-                        }
-
-                        try (Box box = db.cube()) {
-                            for (int i = 0; i < batchCount; i++) {
-                                int id = (p * batchCount) + i;
-                                box.d("T1", id).delete();
-                                count.incrementAndGet();
+                            if (!("U" + ti).equals(t1.getValue())) {
+                                System.out.println("eu");
+                                throw new RuntimeException(ti + "  " + t1.getValue());
                             }
-                            var cr = box.commit();
+                            ti++;
                         }
+                        if (ti != maxId) {
+                            System.out.println("e");
+                            throw new RuntimeException();
+                        }
+                    }
+                    try (final Box box = db.cube()) {
+                        for (int i1 = 0; i1 < batchCount; i1++) {
+                            int id = (p * batchCount) + i1;
+                            box.d("T1", id).delete();
+                            count.incrementAndGet();
+                        }
+                        var cr = box.commit();
                     }
                 });
             }
@@ -324,12 +312,10 @@ public class BenchmarkDBTestMySQL {
                 stmt2.execute();
 
                 stmt1 = conn1.prepareStatement("select * from T1");
-                List< T1> transaction1 = T1
-                        .toArray(stmt1.executeQuery());
+                List< T1> transaction1 = toArray(stmt1.executeQuery());
 
                 stmt2 = conn2.prepareStatement("select * from T1");
-                List<T1> transaction2 = T1
-                        .toArray(stmt2.executeQuery());
+                List<T1> transaction2 = toArray(stmt2.executeQuery());
                 if (transaction1.size() == 1
                         && transaction1.get(0).getId() == -1
                         && transaction2.size() == 1
@@ -353,66 +339,57 @@ public class BenchmarkDBTestMySQL {
             ExecutorService pool = CreatePool();
             for (int i = 0; i < threadCount; i++) {
                 final int p = i;
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-
+                pool.execute(() -> {
+                    try {
+                        var conn = connPool.take();
+                        conn.setAutoCommit(false);
+                        var stmt = conn.prepareStatement("insert into T1(Id,Value) values( ?, ? )");
+                        for (int i1 = 0; i1 < batchCount; i1++) {
+                            int id = (p * batchCount) + i1;
+                            stmt.setInt(1, id);
+                            stmt.setString(2, Integer.toString(id));
+                            stmt.addBatch();
+                            count.incrementAndGet();
+                        }
+                        stmt.executeBatch();
+                        stmt.close();
+                        conn.commit();
+                        connPool.put(conn);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    for (int r = 0; r < reinterationSelect; r++) {
                         try {
                             var conn = connPool.take();
-                            conn.setAutoCommit(false);
-                            var stmt = conn.prepareStatement("insert into T1(Id,Value) values( ?, ? )");
+                            conn.setAutoCommit(true);
+                            var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
+                            int minId = p * batchCount + 0;
+                            int maxId = p * batchCount + batchCount;
+                            stmt.setInt(1, minId);
+                            stmt.setInt(2, maxId);
 
-                            for (int i = 0; i < batchCount; i++) {
-                                int id = (p * batchCount) + i;
-
-                                stmt.setInt(1, id);
-                                stmt.setString(2, Integer.toString(id));
-                                stmt.addBatch();
-                                count.incrementAndGet();
-                            }
-                            stmt.executeBatch();
+                            var reader = toArray(stmt.executeQuery()).iterator();
                             stmt.close();
 
-                            conn.commit();
                             connPool.put(conn);
+
+                            int ti = minId;
+                            while (reader.hasNext()) {
+                                var iv = reader.next().getId();
+                                if (ti != iv) {
+                                    System.out.println("e");
+                                    throw new RuntimeException(ti + "  " + iv);
+                                }
+                                ti++;
+
+                            }
+                            if (ti != maxId) {
+                                System.out.println("e2");
+                                throw new RuntimeException(ti + "  " + maxId);
+                            }
 
                         } catch (Exception ex) {
                             ex.printStackTrace();
-                        }
-
-                        for (int r = 0; r < reinterationSelect; r++) {
-                            try {
-                                var conn = connPool.take();
-                                conn.setAutoCommit(true);
-                                var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
-                                int minId = p * batchCount + 0;
-                                int maxId = p * batchCount + batchCount;
-                                stmt.setInt(1, minId);
-                                stmt.setInt(2, maxId);
-
-                                var reader = T1.toArray(stmt.executeQuery()).iterator();
-                                stmt.close();
-
-                                connPool.put(conn);
-
-                                int ti = minId;
-                                while (reader.hasNext()) {
-                                    var iv = reader.next().getId();
-                                    if (ti != iv) {
-                                        System.out.println("e");
-                                        throw new RuntimeException(ti + "  " + iv);
-                                    }
-                                    ti++;
-
-                                }
-                                if (ti != maxId) {
-                                    System.out.println("e2");
-                                    throw new RuntimeException(ti + "  " + maxId);
-                                }
-
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
                         }
                     }
                 });
@@ -433,71 +410,62 @@ public class BenchmarkDBTestMySQL {
             pool = CreatePool();
             for (int i = 0; i < threadCount; i++) {
                 final int p = i;
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-
+                pool.execute(() -> {
+                    try {
+                        var conn = connPool.take();
+                        conn.setAutoCommit(false);
+                        var stmt = conn.prepareStatement("update T1 set Value=? where Id=?");
+                        for (int i1 = 0; i1 < batchCount; i1++) {
+                            int id = (p * batchCount) + i1;
+                            stmt.setInt(2, id);
+                            stmt.setString(1, "U" + id);
+                            stmt.addBatch();
+                            count.incrementAndGet();
+                        }
+                        stmt.executeBatch();
+                        stmt.close();
+                        conn.commit();
+                        connPool.put(conn);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                    for (int r = 0; r < reinterationSelect; r++) {
                         try {
                             var conn = connPool.take();
-                            conn.setAutoCommit(false);
-                            var stmt = conn.prepareStatement("update T1 set Value=? where Id=?");
+                            conn.setAutoCommit(true);
+                            var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
+                            int minId = p * batchCount + 0;
+                            int maxId = p * batchCount + batchCount;
+                            stmt.setInt(1, minId);
+                            stmt.setInt(2, maxId);
 
-                            for (int i = 0; i < batchCount; i++) {
-                                int id = (p * batchCount) + i;
-
-                                stmt.setInt(2, id);
-                                stmt.setString(1, "U" + id);
-                                stmt.addBatch();
-
-                                count.incrementAndGet();
-                            }
-                            stmt.executeBatch();
+                            var reader = toArray(stmt.executeQuery()).iterator();
                             stmt.close();
 
-                            conn.commit();
                             connPool.put(conn);
+
+                            int ti = minId;
+                            while (reader.hasNext()) {
+                                var t1 = reader.next();
+                                var iv = t1.getId();
+                                if (ti != iv) {
+                                    System.out.println("e");
+                                    throw new RuntimeException(ti + "  " + iv);
+                                }
+                                if (!("U" + ti).equals(t1.getValue())) {
+                                    System.out.println("eu");
+                                    throw new RuntimeException(ti + "  " + t1.getValue());
+                                }
+                                ti++;
+
+                            }
+                            if (ti != maxId) {
+                                System.out.println("e2");
+                                throw new RuntimeException(ti + "  " + maxId);
+                            }
+
                         } catch (Exception ex) {
                             ex.printStackTrace();
-                        }
-
-                        for (int r = 0; r < reinterationSelect; r++) {
-                            try {
-                                var conn = connPool.take();
-                                conn.setAutoCommit(true);
-                                var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
-                                int minId = p * batchCount + 0;
-                                int maxId = p * batchCount + batchCount;
-                                stmt.setInt(1, minId);
-                                stmt.setInt(2, maxId);
-
-                                var reader = T1.toArray(stmt.executeQuery()).iterator();
-                                stmt.close();
-
-                                connPool.put(conn);
-
-                                int ti = minId;
-                                while (reader.hasNext()) {
-                                    var t1 = reader.next();
-                                    var iv = t1.getId();
-                                    if (ti != iv) {
-                                        System.out.println("e");
-                                        throw new RuntimeException(ti + "  " + iv);
-                                    }
-                                    if (!("U" + ti).equals(t1.getValue())) {
-                                        System.out.println("eu");
-                                        throw new RuntimeException(ti + "  " + t1.getValue());
-                                    }
-                                    ti++;
-
-                                }
-                                if (ti != maxId) {
-                                    System.out.println("e2");
-                                    throw new RuntimeException(ti + "  " + maxId);
-                                }
-
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
                         }
                     }
                 });
@@ -518,71 +486,62 @@ public class BenchmarkDBTestMySQL {
             pool = CreatePool();
             for (int i = 0; i < threadCount; i++) {
                 final int p = i;
-                pool.execute(new Runnable() {
-                    @Override
-                    public void run() {
-
-                        for (int r = 0; r < reinterationSelect; r++) {
-                            try {
-                                var conn = connPool.take();
-                                conn.setAutoCommit(true);
-                                var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
-                                int minId = p * batchCount + 0;
-                                int maxId = p * batchCount + batchCount;
-                                stmt.setInt(1, minId);
-                                stmt.setInt(2, maxId);
-
-                                var reader = T1.toArray(stmt.executeQuery()).iterator();
-                                stmt.close();
-
-                                connPool.put(conn);
-
-                                int ti = minId;
-                                while (reader.hasNext()) {
-                                    var t1 = reader.next();
-                                    var iv = t1.getId();
-                                    if (ti != iv) {
-                                        System.out.println("e");
-                                        throw new RuntimeException(ti + "  " + iv);
-                                    }
-                                    if (!("U" + ti).equals(t1.getValue())) {
-                                        System.out.println("eu");
-                                        throw new RuntimeException(ti + "  " + t1.getValue());
-                                    }
-                                    ti++;
-
-                                }
-                                if (ti != maxId) {
-                                    System.out.println("e2");
-                                    throw new RuntimeException(ti + "  " + maxId);
-                                }
-
-                            } catch (Exception ex) {
-                                ex.printStackTrace();
-                            }
-                        }
-
+                pool.execute(() -> {
+                    for (int r = 0; r < reinterationSelect; r++) {
                         try {
                             var conn = connPool.take();
-                            conn.setAutoCommit(false);
-                            var stmt = conn.prepareStatement("delete from T1 where Id=?");
+                            conn.setAutoCommit(true);
+                            var stmt = conn.prepareStatement("select Id,Value from T1 where Id>=? and Id<? order by Id");
+                            int minId = p * batchCount + 0;
+                            int maxId = p * batchCount + batchCount;
+                            stmt.setInt(1, minId);
+                            stmt.setInt(2, maxId);
 
-                            for (int i = 0; i < batchCount; i++) {
-                                int id = (p * batchCount) + i;
-
-                                stmt.setInt(1, id);
-                                stmt.addBatch();
-
-                                count.incrementAndGet();
-                            }
-                            stmt.executeBatch();
+                            var reader = toArray(stmt.executeQuery()).iterator();
                             stmt.close();
 
-                            conn.commit();
                             connPool.put(conn);
+
+                            int ti = minId;
+                            while (reader.hasNext()) {
+                                var t1 = reader.next();
+                                var iv = t1.getId();
+                                if (ti != iv) {
+                                    System.out.println("e");
+                                    throw new RuntimeException(ti + "  " + iv);
+                                }
+                                if (!("U" + ti).equals(t1.getValue())) {
+                                    System.out.println("eu");
+                                    throw new RuntimeException(ti + "  " + t1.getValue());
+                                }
+                                ti++;
+
+                            }
+                            if (ti != maxId) {
+                                System.out.println("e2");
+                                throw new RuntimeException(ti + "  " + maxId);
+                            }
+
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
+                    }
+                    try {
+                        var conn = connPool.take();
+                        conn.setAutoCommit(false);
+                        var stmt = conn.prepareStatement("delete from T1 where Id=?");
+                        for (int i1 = 0; i1 < batchCount; i1++) {
+                            int id = (p * batchCount) + i1;
+                            stmt.setInt(1, id);
+                            stmt.addBatch();
+                            count.incrementAndGet();
+                        }
+                        stmt.executeBatch();
+                        stmt.close();
+                        conn.commit();
+                        connPool.put(conn);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
                     }
                 });
             }
@@ -602,7 +561,7 @@ public class BenchmarkDBTestMySQL {
                 conn.setAutoCommit(false);
                 var stmt = conn.prepareStatement("select Id,Value from T1");
 
-                var list = T1.toArray(stmt.executeQuery());
+                var list = toArray(stmt.executeQuery());
                 if (list.size() != 2) {
                     throw new Exception("Delete Error");
                 }
@@ -678,24 +637,6 @@ public class BenchmarkDBTestMySQL {
             _value = val;
         }
 
-        public static <T> List<T> toArray(Iterable<T> it) {
-            ArrayList<T> list = new ArrayList<>();
-            for (T t : it) {
-                list.add(t);
-            }
-            return list;
-        }
-
-        public static List<T1> toArray(java.sql.ResultSet it) throws SQLException {
-            ArrayList<T1> list = new ArrayList<>();
-            while (it.next()) {
-                T1 t1 = new T1();
-                t1.setId(it.getInt(1));
-                t1.setValue(it.getString(2));
-                list.add(t1);
-            }
-            return list;
-        }
     }
 
     public static class AppServer extends LocalDatabaseServer {
@@ -706,7 +647,7 @@ public class BenchmarkDBTestMySQL {
 
         }
 
-        public static class FileConfig extends BoxFileStreamConfig {
+        static class FileConfig extends BoxFileStreamConfig {
 
             public FileConfig() {
                 //this.FileIncSize = (int) mb(4);
@@ -719,6 +660,24 @@ public class BenchmarkDBTestMySQL {
             }
         }
 
+    }
+
+    public static class Methods {
+
+        public static <T> ArrayList<T> toList(Iterable<T> src) {
+            return DB.toList(src);
+        }
+
+        public static List<T1> toArray(java.sql.ResultSet it) throws SQLException {
+            ArrayList<T1> list = new ArrayList<>();
+            while (it.next()) {
+                T1 t1 = new T1();
+                t1.setId(it.getInt(1));
+                t1.setValue(it.getString(2));
+                list.add(t1);
+            }
+            return list;
+        }
     }
 
 }
