@@ -50,7 +50,7 @@ Welcome post Results to Issues
   <dependency>
 	<groupId>iBoxDB</groupId>
 	<artifactId>iBoxDB</artifactId>
-	<version>2.15</version>
+	<version>2.17</version>
   </dependency>
 </dependencies>
 ```
@@ -59,6 +59,6 @@ Welcome post Results to Issues
 #### Install
 
 ```
-mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.15 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+mvn deploy:deploy-file -Dfile=iBoxDB-2.17.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.17 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
 ```
 
