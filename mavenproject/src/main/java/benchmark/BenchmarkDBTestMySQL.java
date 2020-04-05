@@ -44,7 +44,7 @@ public class BenchmarkDBTestMySQL {
     public static void main(String[] args) {
         try {
 
-            System.out.println("Benchmark Version 1.2, " + System.getProperty("java.version"));
+            System.out.println("Benchmark Version 1.2.17, " + System.getProperty("java.version"));
             System.out.format("threadCount= %,d batchCount= %,d reinterationSelect= %,d %n",
                     threadCount, batchCount, reinterationSelect);
 
@@ -69,7 +69,7 @@ public class BenchmarkDBTestMySQL {
                 TestMySQL();
             } catch (Throwable ex) {
                 System.out.println("No MySQL Server at " + mysqlstr);
-                ex.printStackTrace();
+                //ex.printStackTrace();
 
             }
             System.out.println();
