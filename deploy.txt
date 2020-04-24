@@ -1,5 +1,7 @@
- 
-mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.15 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+
+
+******** Local Deploy 
+mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
 
     
  <repositories>
@@ -13,8 +15,61 @@ mvn deploy:deploy-file -Dfile=iBoxDB-2.15.jar -DgroupId=iBoxDB -DartifactId=iBox
 <dependency>
 	<groupId>iBoxDB</groupId>
 	<artifactId>iBoxDB</artifactId>
-	<version>2.15</version>
+	<version>2.27</version>
 </dependency>    
 </dependencies>
+
+
+
+********** Remote Deploy
+
+vi ~/.m2/settings.xml
+
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+
+  <activeProfiles>
+    <activeProfile>github</activeProfile>
+  </activeProfiles>
+
+  <profiles>
+    <profile>
+      <id>github</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>github</id>
+          <name>GitHub OWNER Apache Maven Packages</name>
+          <url>https://maven.pkg.github.com/OWNER/REPOSITORY</url>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <servers>
+    <server>
+      <id>github</id>
+      <username>USERNAME</username>
+      <password>TOKEN</password>
+    </server>
+  </servers>
+</settings>
+
+
+
+
+mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=https://maven.pkg.github.com/iboxdb/teadb  -DupdateReleaseInfo=true -DrepositoryId=github
+
+
+https://github.community/t5/How-to-use-Git-and-GitHub/How-do-you-upload-a-Maven-artifact-to-Github-Packages-using-the/td-p/39954
+https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-apache-maven-for-use-with-github-packages
+
     
 

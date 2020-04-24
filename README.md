@@ -37,28 +37,69 @@ Welcome post Results to Issues
 
 
 
-#### Maven
+#### Setup Remote Maven
+
+```sh
+[user@localhost ~]$ vi .m2/settings.xml 
+```
+
 ```xml
-<repositories>
-  <repository>
-      <id>repository</id>
-      <url>https://github.com/iboxdb/teadb/raw/repository</url>
-   </repository>
-</repositories>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
 
-<dependencies>
-  <dependency>
-	<groupId>iBoxDB</groupId>
-	<artifactId>iBoxDB</artifactId>
-	<version>2.17</version>
-  </dependency>
-</dependencies>
+  <activeProfiles>
+    <activeProfile>github</activeProfile>
+  </activeProfiles>
+
+  <profiles>
+    <profile>
+      <id>github</id>
+      <repositories>
+        <repository>
+          <id>central</id>
+          <url>https://repo1.maven.org/maven2</url>
+          <releases><enabled>true</enabled></releases>
+          <snapshots><enabled>true</enabled></snapshots>
+        </repository>
+        <repository>
+          <id>github</id>
+          <name>GitHub OWNER Apache Maven Packages</name>
+          <url>https://maven.pkg.github.com/iboxdb/teadb</url>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+
+  <servers>
+    <server>
+      <id>github</id>
+      <username>USERNAME</username>
+      <password>TOKEN</password>
+    </server>
+  </servers>
+</settings>
+
+```
+
+[You need an access token to install packages in GitHub Packages.](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line)
+
+[Installing a package](https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-apache-maven-for-use-with-github-packages#installing-a-package)
+
+
+
+#### Local Deploy Jar
+
+```
+mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
 ```
 
 
-#### Install
+#### Remote Deploy Jar
 
 ```
-mvn deploy:deploy-file -Dfile=iBoxDB-2.17.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.17 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=https://maven.pkg.github.com/iboxdb/teadb  -DupdateReleaseInfo=true -DrepositoryId=github
 ```
+
 
