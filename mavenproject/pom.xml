@@ -12,6 +12,14 @@
     </properties>
     
 
+      <repositories> 
+        <repository>
+          <id>localrepository2</id>
+          <name>Local Apache Maven Packages</name>
+          <url>file:${basedir}/libs/repository</url>
+        </repository>
+      </repositories>
+
     <dependencies>
         <dependency>
             <groupId>iBoxDB</groupId>
