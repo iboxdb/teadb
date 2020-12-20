@@ -38,6 +38,28 @@ MySQL  Delete: 1,000,000 AVG: 6,044 objects/s
 Welcome post Results to Issues
 
 
+#### Maven pom.xml
+
+```xml
+<project>
+    <repositories>
+        <repository>
+            <id>repository</id>
+            <url>https://github.com/iboxdb/teadb/raw/repository</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>iBoxDB</groupId>
+            <artifactId>iBoxDB</artifactId>
+            <version>2.27</version>
+        </dependency>
+    </dependencies>
+</project>
+```
+
+
 
 #### Local Deploy Jar
 
