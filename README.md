@@ -9,10 +9,12 @@
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 
 mvn clean
-mvn install -e
+mvn install
 mvn exec:java
 ```
 
+
+##### Results
 
 **VM 2Cores + 8G**
 
@@ -37,7 +39,21 @@ Welcome post Results to Issues
 
 
 
-#### Setup Remote Maven
+#### Local Deploy Jar
+
+```
+mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+```
+
+
+#### Remote Deploy Jar
+
+```
+mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=https://maven.pkg.github.com/iboxdb/teadb  -DupdateReleaseInfo=true -DrepositoryId=github
+```
+
+
+#### Setup Remote Maven for Remote Deploy
 
 ```sh
 [user@localhost ~]$ vi .m2/settings.xml 
@@ -87,19 +103,5 @@ Welcome post Results to Issues
 
 [Installing a package](https://help.github.com/en/packages/using-github-packages-with-your-projects-ecosystem/configuring-apache-maven-for-use-with-github-packages#installing-a-package)
 
-
-
-#### Local Deploy Jar
-
-```
-mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
-```
-
-
-#### Remote Deploy Jar
-
-```
-mvn deploy:deploy-file -Dfile=iBoxDB-2.27.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.27 -Dpackaging=jar -Durl=https://maven.pkg.github.com/iboxdb/teadb  -DupdateReleaseInfo=true -DrepositoryId=github
-```
 
 

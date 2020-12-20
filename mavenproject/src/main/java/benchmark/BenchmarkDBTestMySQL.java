@@ -3,14 +3,11 @@ package benchmark;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.*;
+import java.io.*;
+import java.sql.*;
 
 import iBoxDB.LocalServer.*;
 import iBoxDB.LocalServer.IO.*;
-
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static benchmark.BenchmarkDBTestMySQL.Methods.*;
 
@@ -43,14 +40,21 @@ public class BenchmarkDBTestMySQL {
 
     public static void main(String[] args) {
         try {
-
-            System.out.println("Benchmark Version 1.2.18, " + System.getProperty("java.version"));
+            //Java11 +
+            System.out.println("Benchmark Version 1.2.30, Java=" + System.getProperty("java.version"));
             System.out.format("threadCount= %,d batchCount= %,d reinterationSelect= %,d %n",
                     threadCount, batchCount, reinterationSelect);
 
             //never set root = "" or "./" when inside IDE
             //the IDE would block writing by reading the Files to memory.
             String root = "../"; //"/tmp"
+
+            root = System.getProperty("user.home");
+            root += File.separator;
+            root += "TEST_TEA_SQL";
+            new File(root).mkdirs();
+
+            System.out.format("PATH= %s %n", root);
             DB.root(root);
 
             System.out.println();
@@ -74,7 +78,7 @@ public class BenchmarkDBTestMySQL {
             }
             System.out.println();
             System.out.println("Test End.");
-            System.exit(0);
+            //System.exit(0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -581,7 +585,7 @@ public class BenchmarkDBTestMySQL {
                 conn.close();
             }
         } catch (Exception ex) {
-            Logger.getLogger(BenchmarkDBTestMySQL.class.getName()).log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
 
         }
     }
