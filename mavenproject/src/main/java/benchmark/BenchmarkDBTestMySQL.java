@@ -11,9 +11,11 @@ import iBoxDB.LocalServer.IO.*;
 
 import static benchmark.BenchmarkDBTestMySQL.Methods.*;
 
+
 /*
-iBoxDB.java v2.15.0
+iBoxDB.java, Zero Setup
  */
+
  /*
 MySQL, mysql-8.0.19-linux-x86_64-minimal , mysql-connector-java-8.0.19.jar
 
@@ -78,7 +80,6 @@ public class BenchmarkDBTestMySQL {
             }
             System.out.println();
             System.out.println("Test End.");
-            //System.exit(0);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -584,6 +585,8 @@ public class BenchmarkDBTestMySQL {
             for (var conn : connPool) {
                 conn.close();
             }
+            //https://bugs.mysql.com/bug.php?id=69526
+            com.mysql.cj.jdbc.AbandonedConnectionCleanupThread.uncheckedShutdown();
         } catch (Exception ex) {
             ex.printStackTrace();
 
