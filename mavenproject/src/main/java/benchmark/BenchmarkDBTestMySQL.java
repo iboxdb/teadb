@@ -43,7 +43,7 @@ public class BenchmarkDBTestMySQL {
     public static void main(String[] args) {
         try {
             //Java11 +
-            System.out.println("Benchmark Version 1.2.30, Java=" + System.getProperty("java.version"));
+            System.out.println("Benchmark Version 1.2.40, Java=" + System.getProperty("java.version"));
             System.out.format("threadCount= %,d batchCount= %,d reinterationSelect= %,d %n",
                     threadCount, batchCount, reinterationSelect);
 
