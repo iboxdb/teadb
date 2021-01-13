@@ -38,12 +38,12 @@ public class BenchmarkDBTestMySQL {
 
     static int threadCount = 100_000;
     static int batchCount = 10;
-    static int reinterationSelect = 3;
+    static int reinterationSelect = 10;
 
     public static void main(String[] args) {
         try {
             //Java11 +
-            System.out.println("Benchmark Version 1.2.40, Java=" + System.getProperty("java.version"));
+            System.out.println("Benchmark Version 1.2.41, Java=" + System.getProperty("java.version"));
             System.out.format("threadCount= %,d batchCount= %,d reinterationSelect= %,d %n",
                     threadCount, batchCount, reinterationSelect);
 
@@ -51,8 +51,9 @@ public class BenchmarkDBTestMySQL {
             //the IDE would block writing by reading the Files to memory.
             String root = "../"; //"/tmp"
 
-            root = System.getProperty("user.home");
-            root += File.separator;
+            //root = System.getProperty("user.home");
+            //root += File.separator;
+            
             root += "TEST_TEA_SQL";
             new File(root).mkdirs();
 
