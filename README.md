@@ -1,6 +1,8 @@
 ### Maven Deploy & Benchmark with MySQL
 
+**This Project for iBoxDB 2.X, check website to get iBoxDB 3.X**
 
+**The 'mysql-connector-java' is too old, has bugs, update it by yourself**
 
 #### Run
 ```
