@@ -1,2 +1,3 @@
  
-mvn deploy:deploy-file -Dfile=iBoxDB-2.17.jar -DgroupId=iBoxDB -DartifactId=iBoxDB -Dversion=2.17 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+
+mvn deploy:deploy-file -Dfile=iboxdb-3.5.jar -DgroupId=iboxdb -DartifactId=iboxdb -Dversion=3.5 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
