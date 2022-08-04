@@ -13,12 +13,25 @@
     
 
       <repositories> 
+       <repository>
+          <id>Central</id>
+          <name>Central Packages</name>
+          <url>https://repo1.maven.org/maven2</url>
+        </repository>
+ 
+	<repository>
+          <id>remoterepository2</id>
+          <name>Remote Packages</name>
+          <url>https://github.com/iboxdb/teadb/raw/repository</url>
+        </repository>
+
         <repository>
           <id>localrepository2</id>
-          <name>Local Apache Maven Packages</name>
+          <name>Local Packages</name>
           <url>file:${basedir}/libs/repository</url>
         </repository>
       </repositories>
+
 
     <dependencies>
         <dependency>
@@ -31,7 +44,7 @@
        <dependency>
           <groupId>mysql</groupId>
           <artifactId>mysql-connector-java</artifactId>
-          <version>8.0.19</version>
+          <version>8.0.30</version>
        </dependency>
     </dependencies>
 
