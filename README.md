@@ -12,9 +12,7 @@
 //Java 11 Version
 export JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 
-mvn clean
-mvn install
-mvn exec:java
+mvn package exec:java
 ```
 
 
