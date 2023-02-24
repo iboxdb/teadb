@@ -1,4 +1,26 @@
- 
+
+<project>   
+    <repositories> 
+        <repository>
+            <id>RemoteRepository2</id>
+            <name>Remote Packages</name>
+            <url>https://github.com/iboxdb/teadb/raw/repository</url>
+        </repository>
+        <repository>
+            <id>LocalRepository2</id>
+            <name>Local Apache Maven Packages</name>
+            <url>file:${basedir}/libs/repository</url>
+        </repository>
+    </repositories>
+
+    <dependencies>
+        <dependency>
+            <groupId>iboxdb</groupId>
+            <artifactId>iboxdb</artifactId>
+            <version>3.6</version>
+        </dependency>
+    </dependencies>
+</project> 
 
 
 mvn deploy:deploy-file -Dfile=iboxdb-3.6.jar -DgroupId=iboxdb -DartifactId=iboxdb -Dversion=3.6 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
