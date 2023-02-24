@@ -1,3 +1,6 @@
  
 
+
+mvn deploy:deploy-file -Dfile=iboxdb-3.6.jar -DgroupId=iboxdb -DartifactId=iboxdb -Dversion=3.6 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+
 mvn deploy:deploy-file -Dfile=iboxdb-3.5.jar -DgroupId=iboxdb -DartifactId=iboxdb -Dversion=3.5 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
