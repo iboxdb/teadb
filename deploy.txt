@@ -17,13 +17,13 @@
         <dependency>
             <groupId>iboxdb</groupId>
             <artifactId>iboxdb</artifactId>
-            <version>4.1</version>
+            <version>4.1.1</version>
         </dependency>
     </dependencies>
 </project> 
 
 
-mvn deploy:deploy-file -Dfile=iboxdb-4.1.jar -DgroupId=iboxdb -DartifactId=iboxdb -Dversion=4.1 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
+mvn deploy:deploy-file -Dfile=iboxdb-4.1.1.jar -DgroupId=iboxdb -DartifactId=iboxdb -Dversion=4.1.1 -Dpackaging=jar -Durl=file:./repository/ -DrepositoryId=repository -DupdateReleaseInfo=true
 
 
 
